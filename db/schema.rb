@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_03_12_200422) do
+ActiveRecord::Schema[7.0].define(version: 2025_03_13_171119) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -47,9 +47,11 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_12_200422) do
     t.bigint "coupon_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status"
     t.index ["coupon_id"], name: "index_subscriptions_on_coupon_id"
     t.index ["external_id"], name: "index_subscriptions_on_external_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
+    t.index ["status"], name: "index_subscriptions_on_status"
   end
 
   add_foreign_key "subscriptions", "coupons"
