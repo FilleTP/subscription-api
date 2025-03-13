@@ -34,6 +34,7 @@ SUBSCRIPTION API
     - This Rails API relies on external systems to verify and authorize users and their
     - ownership of Subscription records
     - Consistent json responses are provided from all endpoints
+    - Consistent Logging is used to ease debugging and issue resolution 
 
 * Future Development
     - Additional Endpoints for Subscription CRUD
