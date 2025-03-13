@@ -1,42 +1,48 @@
 module Subscriptions
   class ApplyCouponService
-    private attr_reader :subscription, :coupon
-    Response = Struct.new(:success?, :status, keyword_init: true)
+    private attr_reader :subscription, :coupon, :discounted_price
+    Response = Struct.new(:success?, :subscription, :status, :error, keyword_init: true)
 
-    def initialize(subscription:, coupon:)
+    def initialize(subscription:, coupon:, discounted_price:)
       @subscription = subscription
       @coupon = coupon
+      @discounted_price = discounted_price
     end
 
     def call
       if coupon.max_redemptions_reached?
-        return Response.new(success?: false, error: "Coupon cannot be applied: Maximum redemptions reached")
+        return failure_response(
+          error: "Coupon cannot be applied: Maximum redemptions reached",
+          status: :unprocessable_entity,
+          )
       end
 
       ActiveRecord::Base.transaction do
-        discounted_price = calculate_discount
-
         subscription.update!(coupon: coupon, unit_price: discounted_price)
-
         coupon.increment!(:redemption_count)
       end
 
-      Result.new(success?: true, subscription: subscription)
+      Response.new(success?: true, subscription: subscription)
     rescue ActiveRecord::RecordInvalid => e
-      log_error("Validation failed: #{e.record.errors.full_messages.join(', ')}", :unprocessable_entity)
+      failure_response("Validation failed: #{e.record.errors.full_messages.join(', ')}", :unprocessable_entity)
     rescue StandardError => e
-      log_error("Unexpected error: #{e.message}", :internal_server_error)
+      failure_response("Unexpected error: #{e.message}", :internal_server_error)
     end
 
     private
 
-    def calculate_discount
-      subscription.unit_price * (1 - (coupon.discount_percentage / 100.0))
+    def failure_response(error, status)
+      log_error(error, status)
+      Response.new(success?: false, error: error, status: status)
     end
 
-    def log_error(message, status)
-      Rails.logger.error("#{self.class} - #{message}")
-      Response.new(success?: false, error: message, status: status)
+    def log_error(error, status)
+      Rails.logger.error(
+        error: "#{self.class} - #{error}",
+        status: status,
+        subscription_id: subscription&.id,
+        coupon_id: coupon&.id,
+      )
     end
   end
 end
