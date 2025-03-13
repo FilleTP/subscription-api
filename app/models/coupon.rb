@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Coupon < ActiveRecord::Base
   has_many :subscriptions, dependent: :nullify
 

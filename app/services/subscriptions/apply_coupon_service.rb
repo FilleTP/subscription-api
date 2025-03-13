@@ -1,25 +1,41 @@
+# frozen_string_literal: true
+
 module Subscriptions
   class ApplyCouponService
     private attr_reader :subscription, :coupon, :discounted_price
     Response = Struct.new(:success?, :subscription, :status, :error, keyword_init: true)
 
-    def initialize(subscription:, coupon:, discounted_price:)
+    def initialize(subscription:, coupon:)
       @subscription = subscription
       @coupon = coupon
-      @discounted_price = discounted_price
     end
 
     def call
       if coupon.max_redemptions_reached?
         return failure_response(
-          error: "Coupon cannot be applied: Maximum redemptions reached",
-          status: :unprocessable_entity,
+          "Coupon cannot be applied: Maximum redemptions reached",
+          :unprocessable_entity,
           )
       end
 
+      discounted_price = calculate_discount
+
       ActiveRecord::Base.transaction do
-        subscription.update!(coupon: coupon, unit_price: discounted_price)
+        subscription.update!(
+          coupon: coupon,
+          unit_price: discounted_price,
+          status: Subscription::STATUSES[:processing],
+        )
         coupon.increment!(:redemption_count)
+      end
+
+      payment_response = update_payment_provider(discounted_price)
+
+      if payment_response.success?
+        subscription.update!(status: Subscription::STATUSES[:done])
+      else
+        subscription.update!(status: Subscription::STATUSES[:failed])
+        return payment_response
       end
 
       Response.new(success?: true, subscription: subscription)
@@ -30,6 +46,17 @@ module Subscriptions
     end
 
     private
+
+    def update_payment_provider(discounted_price)
+      PaymentProviderApiService.new(
+        external_id: subscription.external_id,
+        unit_price: discounted_price,
+      ).call
+    end
+
+    def calculate_discount
+      subscription.unit_price * (1 - (coupon.discount_percentage / 100.0))
+    end
 
     def failure_response(error, status)
       log_error(error, status)
