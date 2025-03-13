@@ -5,18 +5,22 @@ SUBSCRIPTION API
 * Ruby version
     3.1.0
 
-* Configuration+
+* Configuration
+    ```
     git clone git@github.com:FilleTP/subscription-api.git
     cd subscription-api
 
     bundle install
-
+    ```
 * Database creation
+    ```
     rails db:create
     rails db:migrate
-
+    ```
 * How to run the test suite
+    ```
     rspec
+    ```
     - Test include models, use cases and services
     - Test uses Rspec and FactoryBot
 
