@@ -67,8 +67,8 @@ module Subscriptions
       Rails.logger.error(
         error: "#{self.class} - #{error}",
         status: status,
-        subscription_id: subscription&.id,
-        coupon_id: coupon&.id,
+        subscription_id: subscription.id,
+        coupon_id: coupon.id,
       )
     end
   end
