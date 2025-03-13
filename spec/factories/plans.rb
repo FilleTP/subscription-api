@@ -3,6 +3,6 @@
 FactoryBot.define do
   factory :plan do
     title { "Plan Test" }
-    unit_price { 59.99 }
+    unit_price { 100.0 }
   end
 end
