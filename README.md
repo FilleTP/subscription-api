@@ -24,20 +24,21 @@ SUBSCRIPTION API
     - Test include models, use cases and services
     - Test uses Rspec and FactoryBot
 
-* Services (job queues, cache servers, search engines, etc.)
+* General Structure
     - API implementation of adding and removing coupons from subscriptions
     - Uses design pattern UseCase and Services
-    - HTTParty used for external API calls
 
 * Implementation details
     - Simple Authentication to the app is done with a distributed API key
     - This Rails API relies on external systems to verify and authorize users and their
-    - ownership of Subscription records
+      ownership of Subscription records
     - Consistent json responses are provided from all endpoints
-    - Consistent Logging is used to ease debugging and issue resolution 
+    - Consistent Logging is used to ease debugging and issue resolution
+    - HTTParty used for external API calls
 
 * Future Development
     - Additional Endpoints for Subscription CRUD
     - Additional Endpoints for Coupons CRUD
+    - Additional Endpoints for Api Key generation
     - URL whitelisting in Application Controller
     - Rate Limiting and RackAttack
